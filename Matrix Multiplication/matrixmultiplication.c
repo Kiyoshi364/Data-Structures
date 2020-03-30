@@ -134,6 +134,12 @@ int main(char argc, char **argv) {
 		}
 	}
 
+	free(A);
+	free(B);
+	free(C);
+	free(C2);
+	free(O);
+
 	return 0;
 }
 
