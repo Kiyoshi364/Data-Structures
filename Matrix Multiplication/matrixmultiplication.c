@@ -247,7 +247,25 @@ err multS(int *A, int *B, int *C, uint linha, uint n, byte op) {
 		return 0;
 	}
 
-	int M[7][(n/2)*(n/2)], tmp[2][(n/2)*(n/2)];
+	int *M[7], *tmp[2];
+
+	{ // Pedir memória
+	uint newsize = (n/2)*(n/2);
+	for (register uint i = 0; i < 7; i++) {
+		M[i] = malloc(sizeof(*(M[i]))*newsize);
+		if (!M[i]) {
+			printf("multS: n = %u: M[%u]: Not enought memory\n", n, i);
+		}
+	}
+
+	for (register uint i = 0; i < 2; i++) {
+		tmp[i] = malloc(sizeof(*(tmp[i]))*newsize);
+		if (!tmp[i]) {
+			printf("multS: n = %u: tmp[%u]: Not enought memory\n", n, i);
+		}
+	}
+
+	}
 
 	somaS(A, A+linha*(n/2)+(n/2), tmp[0], linha, n/2);
 	somaS(B, B+linha*(n/2)+(n/2), tmp[1], linha, n/2);
@@ -295,6 +313,15 @@ err multS(int *A, int *B, int *C, uint linha, uint n, byte op) {
 	copyS(tmp[0], C+linha*(n/2)+(n/2), linha, n/2);
 
 	//printam(C, n, "MultS:");
+
+	// Devolver memória
+	for (register uint i = 0; i < 7; i++) {
+		free(M[i]);
+	}
+
+	for (register uint i = 0; i < 2; i++) {
+		free(tmp[i]);
+	}
 
 	return 0;
 }
