@@ -53,6 +53,7 @@ err usage(char *argv0) {
 }
 
 int main(char argc, char **argv) {
+	// Parsing das flags
 	if (argc - 3) {
 		usage(argv[0]);
 		return 1;
@@ -89,7 +90,7 @@ int main(char argc, char **argv) {
 		}
 	}
 
-	time_t time;
+	time_t time, time2;
 
 	A = malloc(sizeof(*A)*n*n);
 	B = malloc(sizeof(*B)*n*n);
@@ -113,6 +114,7 @@ int main(char argc, char **argv) {
 	mult(A, B, C2, n);
 
 	time = clock() - time;
+	time2 = time;
 	printf("A operação iterativa levou:\n%ld clocks\n%ld segundos\n\n", time, time/CLOCKS_PER_SEC);
 
 	limpa(C, n);
@@ -126,13 +128,17 @@ int main(char argc, char **argv) {
 
 	//printam(C, n, "MultS C:");
 
-	// Calcula diferenças
+	// Calcula diferenças e só mostra se estiver diferente
 	for (register uint i = 0, f = 1; i < n; i++) {
 		if (C2[i] - C[i]) {
 			if (f && f--) printf("Diff:\n");
 			printf("C[%d][%d]\tTarget: %d\t Real: %d\n", i%n, i/n, C[i], C2[i]);
 		}
 	}
+
+	time2 = time-time2;
+	printf("A diferença de tempo:\n%ld clocks\n%ld segundos\n\n", time2, time2/CLOCKS_PER_SEC);
+	printf("Obs:\nValores positivos favorecem a versão iterativa.\nValores negativos favorecem a versão mágica.\n\n");
 
 	free(A);
 	free(B);
