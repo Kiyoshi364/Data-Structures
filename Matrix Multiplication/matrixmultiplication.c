@@ -98,9 +98,11 @@ int main(char argc, char **argv) {
 	C2 = malloc(sizeof(*C2)*n*n);
 	O = malloc(sizeof(*O)*n*n);
 
+	srand(&time);
+
 	for (register uint i = 0; i < n*n; i++) {
-		A[i] = i;
-		B[i] = n*n - i;
+		A[i] = ( rand() % 2000 ) - 1000;
+		B[i] = ( rand() % 2000 ) - 1000;
 		O[i] = 0;
 	}
 	
