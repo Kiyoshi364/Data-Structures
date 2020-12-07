@@ -8,6 +8,8 @@
 #define INDEX_M(i, l, n)		(X(i, n) + Y(i, n)*(l))
 #define INDEX(i)				INDEX_M(i, linha, n)
 
+#define LIMIT_FOR_MIXED			1024
+
 // Typedefs
 typedef unsigned char byte;
 typedef unsigned char err;
@@ -23,6 +25,7 @@ err subtR(int *A, int *B, int *C, uint linha, uint n);
 err mult(int *A, int *B, int *C, uint n);
 err multR(int *A, int *B, int *C, uint linha, uint n);
 err multS(int *A, int *B, int *C, uint linha, uint n, byte op);
+err multM(int *A, int *B, int *C, uint linha, uint n);
 
 // Configurações
 int *A, *B, *C, *C2, *O;
@@ -52,7 +55,7 @@ err usage(char *argv0) {
 	return 0;
 }
 
-int main(char argc, char **argv) {
+int main(int argc, char **argv) {
 	// Parsing das flags
 	if (argc - 3) {
 		usage(argv[0]);
@@ -90,7 +93,7 @@ int main(char argc, char **argv) {
 		}
 	}
 
-	time_t time, time2;
+	time_t time1, time2;
 
 	A = malloc(sizeof(*A)*n*n);
 	B = malloc(sizeof(*B)*n*n);
@@ -98,7 +101,7 @@ int main(char argc, char **argv) {
 	C2 = malloc(sizeof(*C2)*n*n);
 	O = malloc(sizeof(*O)*n*n);
 
-	srand(&time);
+	srand(time(NULL));
 
 	for (register uint i = 0; i < n*n; i++) {
 		A[i] = ( rand() % 2000 ) - 1000;
@@ -111,22 +114,22 @@ int main(char argc, char **argv) {
 
 	limpa(C2, n);
 
-	time = clock();
+	time1 = clock();
 
 	mult(A, B, C2, n);
 
-	time = clock() - time;
-	time2 = time;
-	printf("A operação iterativa levou:\n%ld clocks\n%ld segundos\n\n", time, time/CLOCKS_PER_SEC);
+	time1 = clock() - time1;
+	time2 = time1;
+	printf("A operação iterativa levou:\n%ld clocks\n%ld segundos\n\n", time1, time1/CLOCKS_PER_SEC);
 
 	limpa(C, n);
 
-	time = clock();
+	time1 = clock();
 
 	multS(A, B, C, n, n, 0);
 
-	time = clock() - time;
-	printf("A operação mágica levou:\n%ld clocks\n%ld segundos\n\n", time, time/CLOCKS_PER_SEC);
+	time1 = clock() - time1;
+	printf("A operação mágica levou:\n%ld clocks\n%ld segundos\n\n", time1, time1/CLOCKS_PER_SEC);
 
 	//printam(C, n, "MultS C:");
 
@@ -138,9 +141,10 @@ int main(char argc, char **argv) {
 		}
 	}
 
-	time2 = time-time2;
+	time2 = time1-time2;
 	printf("A diferença de tempo:\n%ld clocks\n%ld segundos\n\n", time2, time2/CLOCKS_PER_SEC);
-	printf("Obs:\nValores positivos favorecem a versão iterativa.\nValores negativos favorecem a versão mágica.\n\n");
+	printf("Obs:\nValores positivos favorecem a versão iterativa (For-Loop).\n"
+			"Valores negativos favorecem a versão mágica (Strassen).\n\n");
 
 	free(A);
 	free(B);
@@ -275,6 +279,7 @@ err multS(int *A, int *B, int *C, uint linha, uint n, byte op) {
 
 	}
 
+	// Calcular M1 a M7
 	somaS(A, A+linha*(n/2)+(n/2), tmp[0], linha, n/2);
 	somaS(B, B+linha*(n/2)+(n/2), tmp[1], linha, n/2);
 	multS(tmp[0], tmp[1], M[0], n/2, n/2, 1);
@@ -320,7 +325,95 @@ err multS(int *A, int *B, int *C, uint linha, uint n, byte op) {
 	somaS(tmp[0], tmp[1], tmp[0], n/2, n/2);
 	copyS(tmp[0], C+linha*(n/2)+(n/2), linha, n/2);
 
-	//printam(C, n, "MultS:");
+	// Devolver memória
+	for (register uint i = 0; i < 7; i++) {
+		free(M[i]);
+	}
+
+	for (register uint i = 0; i < 2; i++) {
+		free(tmp[i]);
+	}
+
+	return 0;
+}
+
+err multM(int *A, int *B, int *C, uint linha, uint n) {
+	if (n <= LIMIT_FOR_MIXED) {
+		for (register uint i = 0; i < 4; i++) {
+			uint novoComecoC = (i/2)*linha*(n/2)+(i&1)*(n/2);
+
+			multR(A+(i/2)*linha*(n/2), B+(i&1)*(n/2), C+novoComecoC, linha, n/2);
+			multR(A+(i/2)*linha*(n/2)+n/2, B+linha*(n/2)+(i&1)*(n/2), C+novoComecoC, linha, n/2);
+
+		}
+		return 0;
+	}
+
+	int *M[7], *tmp[2];
+
+	{ // Pedir memória
+	uint newsize = (n/2)*(n/2);
+	for (register uint i = 0; i < 7; i++) {
+		M[i] = malloc(sizeof(*(M[i]))*newsize);
+		if (!M[i]) {
+			printf("multS: n = %u: M[%u]: Not enought memory\n", n, i);
+		}
+	}
+
+	for (register uint i = 0; i < 2; i++) {
+		tmp[i] = malloc(sizeof(*(tmp[i]))*newsize);
+		if (!tmp[i]) {
+			printf("multS: n = %u: tmp[%u]: Not enought memory\n", n, i);
+		}
+	}
+
+	}
+
+	// Calcular M1 a M7
+	somaS(A, A+linha*(n/2)+(n/2), tmp[0], linha, n/2);
+	somaS(B, B+linha*(n/2)+(n/2), tmp[1], linha, n/2);
+	multM(tmp[0], tmp[1], M[0], n/2, n/2);
+
+	somaS(A+linha*(n/2), A+linha*(n/2)+(n/2), tmp[0], linha, n/2);
+	somaS(B, O, tmp[1], linha, n/2);
+	multM(tmp[0], tmp[1], M[1], n/2, n/2);
+
+	somaS(A, O, tmp[0], linha, n/2);
+	subtS(B+(n/2), B+linha*(n/2)+(n/2), tmp[1], linha, n/2);
+	multM(tmp[0], tmp[1], M[2], n/2, n/2);
+
+	somaS(A+linha*(n/2)+(n/2), O, tmp[0], linha, n/2);
+	subtS(B+linha*(n/2), B, tmp[1], linha, n/2);
+	multM(tmp[0], tmp[1], M[3], n/2, n/2);
+
+	somaS(A, A+(n/2), tmp[0], linha, n/2);
+	somaS(B+linha*(n/2)+(n/2), O, tmp[1], linha, n/2);
+	multM(tmp[0], tmp[1], M[4], n/2, n/2);
+
+	subtS(A+linha*(n/2), A, tmp[0], linha, n/2);
+	somaS(B, B+(n/2), tmp[1], linha, n/2);
+	multM(tmp[0], tmp[1], M[5], n/2, n/2);
+
+	subtS(A+(n/2), A+linha*(n/2)+(n/2), tmp[0], linha, n/2);
+	somaS(B+linha*(n/2), B+linha*(n/2)+(n/2), tmp[1], linha, n/2);
+	multM(tmp[0], tmp[1], M[6], n/2, n/2);
+
+	// Aqui para frente não tem diferença entre somaS e somaR
+	somaS(M[0], M[3], tmp[0], n/2, n/2);
+	subtS(M[6], M[4], tmp[1], n/2, n/2);
+	somaS(tmp[0], tmp[1], tmp[0], n/2, n/2);
+	copyS(tmp[0], C, linha, n/2);
+
+	somaS(M[2], M[4], tmp[0], n/2, n/2);
+	copyS(tmp[0], C+(n/2), linha, n/2);
+
+	somaS(M[1], M[3], tmp[0], n/2, n/2);
+	copyS(tmp[0], C+linha*(n/2), linha, n/2);
+
+	subtS(M[0], M[1], tmp[0], n/2, n/2);
+	somaS(M[2], M[5], tmp[1], n/2, n/2);
+	somaS(tmp[0], tmp[1], tmp[0], n/2, n/2);
+	copyS(tmp[0], C+linha*(n/2)+(n/2), linha, n/2);
 
 	// Devolver memória
 	for (register uint i = 0; i < 7; i++) {
