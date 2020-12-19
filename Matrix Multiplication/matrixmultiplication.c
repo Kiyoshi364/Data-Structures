@@ -25,6 +25,7 @@ err subtR(int *A, int *B, int *C, uint linha, uint n);
 err mult(int *A, int *B, int *C, uint n);
 err multR(int *A, int *B, int *C, uint linha, uint n);
 err multS(int *A, int *B, int *C, uint linha, uint n, byte op);
+err multS2(int *A, int *B, int *C, uint linha, uint n, byte op);
 err multM(int *A, int *B, int *C, uint linha, uint n);
 
 // Configurações
@@ -126,7 +127,7 @@ int main(int argc, char **argv) {
 
 	time1 = clock();
 
-	multS(A, B, C, n, n, 0);
+	multS2(A, B, C, n, n, 0);
 
 	time1 = clock() - time1;
 	printf("A operação mágica levou:\n%ld clocks\n%ld segundos\n\n", time1, time1/CLOCKS_PER_SEC);
@@ -247,6 +248,78 @@ err copyS(int *From, int *To, uint linha, uint n) {
 	for (register uint i = 0; i < n*n; i++) {
 		To[INDEX(i)] = From[i];
 	}
+	return 0;
+}
+
+err multS2(int *A, int *B, int *C, uint linha, uint n, byte op) {
+	if (n <= 2) {
+		C[op?0:INDEX(0)] = A[INDEX(0)] * B[INDEX(0)] + A[INDEX(1)] * B[INDEX(2)];
+		C[op?1:INDEX(1)] = A[INDEX(0)] * B[INDEX(1)] + A[INDEX(1)] * B[INDEX(3)];
+		C[op?2:INDEX(2)] = A[INDEX(2)] * B[INDEX(0)] + A[INDEX(3)] * B[INDEX(2)];
+		C[op?3:INDEX(3)] = A[INDEX(2)] * B[INDEX(1)] + A[INDEX(3)] * B[INDEX(3)];
+		return 0;
+	}
+
+	int *M;
+	uint newsize = (n/2)*(n/2);
+
+	// Pedir memória
+	M = malloc(sizeof(*M)*newsize*9);
+	if (!M) {
+		printf("multS2: n = %u: M: Not enought memory\n", n);
+	}
+
+	int *tmp = M + 7*newsize;
+
+	// Calcular M1 a M7
+	somaS(A, A+linha*(n/2)+(n/2), tmp, linha, n/2);
+	somaS(B, B+linha*(n/2)+(n/2), tmp+newsize, linha, n/2);
+	multS2(tmp, tmp+newsize, M, n/2, n/2, 1);
+
+	somaS(A+linha*(n/2), A+linha*(n/2)+(n/2), tmp, linha, n/2);
+	somaS(B, O, tmp+newsize, linha, n/2);
+	multS2(tmp, tmp+newsize, M+1*newsize, n/2, n/2, 1);
+
+	somaS(A, O, tmp, linha, n/2);
+	subtS(B+(n/2), B+linha*(n/2)+(n/2), tmp+newsize, linha, n/2);
+	multS2(tmp, tmp+newsize, M+2*newsize, n/2, n/2, 1);
+
+	somaS(A+linha*(n/2)+(n/2), O, tmp, linha, n/2);
+	subtS(B+linha*(n/2), B, tmp+newsize, linha, n/2);
+	multS2(tmp, tmp+newsize, M+3*newsize, n/2, n/2, 1);
+
+	somaS(A, A+(n/2), tmp, linha, n/2);
+	somaS(B+linha*(n/2)+(n/2), O, tmp+newsize, linha, n/2);
+	multS2(tmp, tmp+newsize, M+4*newsize, n/2, n/2, 1);
+
+	subtS(A+linha*(n/2), A, tmp, linha, n/2);
+	somaS(B, B+(n/2), tmp+newsize, linha, n/2);
+	multS2(tmp, tmp+newsize, M+5*newsize, n/2, n/2, 1);
+
+	subtS(A+(n/2), A+linha*(n/2)+(n/2), tmp, linha, n/2);
+	somaS(B+linha*(n/2), B+linha*(n/2)+(n/2), tmp+newsize, linha, n/2);
+	multS2(tmp, tmp+newsize, M+6*newsize, n/2, n/2, 1);
+
+	// Aqui para frente não tem diferença entre somaS e somaR
+	somaS(M+0*newsize, M+3*newsize, tmp, n/2, n/2);
+	subtS(M+6*newsize, M+4*newsize, tmp+newsize, n/2, n/2);
+	somaS(tmp, tmp+newsize, tmp, n/2, n/2);
+	copyS(tmp, C, linha, n/2);
+
+	somaS(M+2*newsize, M+4*newsize, tmp, n/2, n/2);
+	copyS(tmp, C+(n/2), linha, n/2);
+
+	somaS(M+1*newsize, M+3*newsize, tmp, n/2, n/2);
+	copyS(tmp, C+linha*(n/2), linha, n/2);
+
+	subtS(M+0*newsize, M+1*newsize, tmp, n/2, n/2);
+	somaS(M+2*newsize, M+5*newsize, tmp+newsize, n/2, n/2);
+	somaS(tmp, tmp+newsize, tmp, n/2, n/2);
+	copyS(tmp, C+linha*(n/2)+(n/2), linha, n/2);
+
+	// Devolver memória
+	free(M);
+
 	return 0;
 }
 
