@@ -60,15 +60,18 @@ int* topoSort(grafo *g) {
 	// Remover Vertices e Atualizar Queue
 	for (int i = 0; i < end && end < g->V; i++) {
 		clist *adj = (g->adjs)[ queue[i] ];
+		clist *now = adj->next;
 
-		while ( !emptyClist(adj) ) {
-			int val = popClist(adj);
+		while ( now != adj ) {
+			int val = now->val;
 
 			graus[val] -= 1;
 			if ( graus[val] == 0 ) {
 				queue[end] = val;
 				end++;
 			}
+
+			now = now->next;
 		}
 	}
 
