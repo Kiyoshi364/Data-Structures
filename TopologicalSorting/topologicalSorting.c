@@ -22,6 +22,7 @@ int readToBuf(char *buf) {
 			printf("Not Found: %c\n", c);
 		}
 	}
+	return -1;
 }
 
 int* topoSort(grafo *g) {
