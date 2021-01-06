@@ -12,14 +12,15 @@ int readToBuf(char *buf) {
 	for (int i = 0; i < TAMBUFFER; ) {
 		int c = getchar();
 
-		if ( IS_SPACE(c) ) {
+		if ( c == '\r' ) {
+		} else if ( IS_SPACE(c) || c == EOF ) {
 			buf[i] = '\0';
 			return c;
 		} else if ( IS_NUM(c) ) {
 			buf[i] = c;
 			i++;
 		} else {
-			printf("Not Found: %c\n", c);
+			printf("Not Found: %c (%d)\n", c, c);
 		}
 	}
 	return -1;
