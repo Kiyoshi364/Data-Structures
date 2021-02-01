@@ -138,8 +138,10 @@ int insertRBT(rbt *t, int val) {
 	_rbt_node *next = NULL, *next2 = NULL, *next3 = NULL;
 	long dir = 0;
 
+#ifdef DEBUG
 	printf("Before search while:\n\t"); // DEBUG
 	printVoidStack(nodeStack); // DEBUG
+#endif // DEBUG
 	// Find a path
 	while ( now ) {
 
@@ -154,11 +156,15 @@ int insertRBT(rbt *t, int val) {
 		nodeStack = pushVoidStack(nodeStack, (void *) now);
 		now = next;
 
+#ifdef DEBUG
 		printf("End of search while:\n\t"); // DEBUG
 		printVoidStack(nodeStack); // DEBUG
+#endif // DEBUG
 	}
+#ifdef DEBUG
 	printf("After search while:\n\t"); // DEBUG
 	printVoidStack(nodeStack); // DEBUG
+#endif // DEBUG
 
 	nodeStack = popFreeVoidStack(nodeStack, (void **) &now);
 
@@ -183,8 +189,10 @@ int insertRBT(rbt *t, int val) {
 
 	nodeStack = popFreeVoidStack(nodeStack, (void **) &next3);
 
+#ifdef DEBUG
 	printf("Before recolor while:\n\t"); // DEBUG
 	printVoidStack(nodeStack); // DEBUG
+#endif // DEBUG
 	// next3	= grand-grandfather
 	// next2	= grandfather
 	// next		= father
@@ -201,12 +209,18 @@ int insertRBT(rbt *t, int val) {
 		nodeStack = popFreeVoidStack(nodeStack, (void **) &next3);
 		return 0;
 	}
+#ifdef DEBUG
 	printf("After recolor while:\n\t"); // DEBUG
 	printVoidStack(nodeStack); // DEBUG
 
-	puts("Before Fix");
+	puts("Before Fix"); // DEBUG
+#endif // DEBUG
+
 	fixColors(&(t->root), next2, next, now);
-	puts("After Fix");
+
+#ifdef DEBUG
+	puts("After Fix"); // DEBUG
+#endif // DEBUG
 
 	// Free stack
 	freeVoidStack(nodeStack);

@@ -36,20 +36,20 @@ int main(int argc, char **argv) {
 	while ( (c = readToBuf(buf)) != EOF ) {
 		int val = atoll(buf);
 
-		printf("\nMain: To insert %d\n", val);
+		// printf("\nMain: To insert %d\n", val);
 
 		if ( insertRBT(tree, val) ) {
 			printf("Main: insertRBT error while inserting %d\n", val);
 		}
 
-		printf("Main: Inserted %d\n", val);
+		// printf("Main: Inserted %d\n", val);
 
-		printPrePRBT(tree->root);
+		// printPrePRBT(tree->root);
 	}
 
-	puts("Main: Fora do While\n\n");
+	// puts("Main: Fora do While\n\n");
 
-	//*
+	/*
 	printPrePRBT(tree->root);
 	/*/
 	printPreRBT(tree);
