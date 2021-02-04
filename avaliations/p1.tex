@@ -1,0 +1,887 @@
+\documentclass[12pt]{article}
+
+\usepackage[brazilian]{babel}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+
+%Fazer algoritmos
+\usepackage{verbatim}
+\newenvironment{code}{\verbatim}{\endverbatim}
+
+%Desenhar grafos
+\usepackage{tikz}
+\usetikzlibrary{positioning}
+
+\newcommand{\tb}{\textbf}
+\newcommand{\ti}{\textit}
+\newcommand{\tu}{\underline}
+
+\newtheorem{ex}{Questão}
+
+\newcounter{bleep}
+\newenvironment{alfa}
+{\begin{list}{(\alph{bleep})}{\usecounter{bleep}}}
+{\end{list}}
+
+\begin{document}
+\title{Prova 1 - Estrutura de Dados}
+\author{Daniel Kiyoshi Hashimoto Vouzella de Andrade}
+\date{}
+\maketitle
+
+%Q1
+\begin{ex}
+	\begin{code}
+
+
+    typedef struct _list {
+        int val;
+        struct _list *next;
+        struct _list *prev;
+    } list;
+    
+    int insereODLL(int x, list *cab) {
+        if ( !cab ) // Cabeça não foi criada
+            return -1;
+        
+        list *new = malloc(sizeof(*new));
+        if ( !new ) // Sem memória
+            return -2;
+
+        new->val = x;
+        
+        list *now = cab->next;
+        while ( now->val < x && now != cab )
+            now = now->next;
+        
+        new->prev = now->prev;
+        new->next = now;
+        
+        now->prev = new;
+        
+        return 0;
+    }
+	\end{code}
+\end{ex}
+\newpage
+
+%Q2
+\begin{ex}
+	\begin{alfa}
+	%2-1
+	\quad\\
+	\item
+	\begin{code}
+
+
+    typedef struct _tree {
+        int chave, soma_pref;
+        struct _tree *esq;
+        struct _tree *dir;
+    } tree;
+    
+    int calc_soma_pref(tree *root, int bias) {
+        if ( !root ) // Árvore não foi criada
+            return -1;
+        
+        int sum = bias;
+        if ( root->esq ) {
+            calc_soma_pref(root->esq, bias);
+            sum = root->esq->sum_pref;
+        }
+        
+        root->soma_pref = root->chave + sum;
+        
+        if ( root->dir )
+            calc_soma_pref(root->dir, root->soma_pref);
+
+        return 0;
+    }
+	\end{code}
+	%2-2
+	\item
+		Após uma insersão,
+		para atualizar os \verb.soma_prefixos.,
+		são necessários mexer em $m$ dos $n$ nós
+		que estão na árvore,
+		onde $m$ é o número de nós maiores que o inserido.
+
+		Se a árvore for balanceada,
+		então $h$ é aproximadamente $log_2(n)$.
+		Como nem sempre é possível alterar os $m$ nós
+		em $log_2(n)$ passos.
+		
+		Dessa forma, podemos concluir que
+		Daniel claramente errou nas contas do cálculo do tempo
+		do seu algoritmo para árvores balanceadas.
+
+		Entretanto, para árvores onde $h$ se aproxima de $n$,
+		não balanceadas, é possível tal algoritmo existir.
+
+	\end{alfa}
+\end{ex}
+\newpage
+
+%Q3
+\begin{ex}
+	\quad\\
+	Legenda de cores:
+	\begin{itemize}
+		\item[$-$] Preto: Sem diferenças da versão passada.
+		\item[$-$] Vermelha: Caminho para no inserido e o no inserido.
+		\item[$-$] Azul: Arestas criadas e Nos alterados pela rotação.
+	\end{itemize}
+	\begin{alfa}
+	%3-1
+	\item Inserindo $32$, $10$, $15$, (rot), $25$, $30$, (rot):\\
+		\begin{tikzpicture}
+			\node[label=$0$, circle, color=red, fill=white, draw] {$32$} ;
+		\end{tikzpicture} \quad \quad \quad \begin{tikzpicture}
+			\node[label=$-1$, circle, fill=white, draw] {$32$}
+			child{ coordinate (t0) edge from parent [color=red, thick] }
+			child{ coordinate (t1) edge from parent [color=white, thick] }
+			;
+
+			\node[label=$0$, circle, color=red, fill=white, draw] at (t0) {$10$} ;
+		\end{tikzpicture} \quad \begin{tikzpicture}
+			\node[label=$-1$, circle, fill=white, draw] {$32$}
+			child{ coordinate (t0) edge from parent [color=red, thick]
+				child{ coordinate (t00) edge from parent [color=white] }
+				child{ coordinate (t01) edge from parent [color=red] }
+			}
+			child{ coordinate (t1) edge from parent [color=white, thick] }
+			;
+
+			\node[label=$1$, circle, fill=white, draw] at (t0) {$10$} ;
+			\node[label=$0$, circle, color=red, fill=white, draw] at (t01) {$15$} ;
+		\end{tikzpicture} \quad \quad \quad \begin{tikzpicture}
+			\node[label=$0$, circle, color=blue, fill=white, draw] {$15$}
+			child{ coordinate (t0) edge from parent [color=blue, thick] }
+			child{ coordinate (t1) edge from parent [color=blue, thick] }
+			;
+
+			\node[label=$0$, circle, color=blue, fill=white, draw] at (t0) {$10$} ;
+			\node[label=$0$, circle, color=blue, fill=white, draw] at (t1) {$32$} ;
+		\end{tikzpicture} \\ \begin{tikzpicture}
+			\node[label=$1$, circle, fill=white, draw] {$15$}
+			child{ coordinate (t0) edge from parent [color=black, thick] }
+			child{ edge from parent [color=white] }
+			child{ coordinate (t1) edge from parent [color=red, thick]
+				child{ coordinate (t10) edge from parent [color=red] }
+				child{ coordinate (t11) edge from parent [color=white] }
+			}
+			;
+
+			\node[label=$0$, circle, fill=white, draw] at (t0) {$10$} ;
+			\node[label=$-1$, circle, fill=white, draw] at (t1) {$32$} ;
+			\node[label=$0$, circle, color=red, fill=white, draw] at (t10) {$25$} ;
+		\end{tikzpicture} \quad \quad \quad \begin{tikzpicture}
+			\node[label=$1$, circle, fill=white, draw] {$15$}
+			child{ coordinate (t0) edge from parent [color=black, thick] }
+			child{ edge from parent [color=white] }
+			child{ coordinate (t1) edge from parent [color=red, thick]
+				child{ coordinate (t10) edge from parent [color=red]
+					child{ coordinate (t110) edge from parent [color=white] }
+					child{ coordinate (t111) edge from parent [color=red] }
+				}
+				child{ coordinate (t11) edge from parent [color=white] }
+			}
+			;
+
+			\node[label=$0$, circle, fill=white, draw] at (t0) {$10$} ;
+			\node[label=$-2$, circle, fill=white, draw] at (t1) {$32$} ;
+			\node[label=$1$, circle, fill=white, draw] at (t10) {$25$} ;
+			\node[label=$0$, circle, color=red, fill=white, draw] at (t111) {$30$} ;
+		\end{tikzpicture} \\ \begin{tikzpicture}
+			\node[label=$1$, circle, fill=white, draw] {$15$}
+			child{ coordinate (t0) edge from parent [color=black, thick] }
+			child{ edge from parent [color=white] }
+			child{ coordinate (t1) edge from parent [color=red, thick]
+				child{ coordinate (t10) edge from parent [color=blue] }
+				child{ coordinate (t11) edge from parent [color=blue] }
+			}
+			;
+
+			\node[label=$0$, circle, fill=white, draw] at (t0) {$10$} ;
+			\node[label=$0$, circle, color=blue, fill=white, draw] at (t1) {$30$} ;
+			\node[label=$0$, circle, color=blue, fill=white, draw] at (t10) {$25$} ;
+			\node[label=$0$, circle, color=blue, fill=white, draw] at (t11) {$32$} ;
+		\end{tikzpicture}
+
+	%3-2
+	\newpage
+	\item Inserindo $19$, (rot), $18$, $17$, (rot), $20$, (rot):\\
+		\begin{tikzpicture}
+			\node[label=$2$, circle, fill=white, draw] {$15$}
+			child{ coordinate (t0) edge from parent [color=black, thick] }
+			child{ edge from parent [color=white] }
+			child{ coordinate (t1) edge from parent [color=red, thick]
+				child{ coordinate (t10) edge from parent [color=red]
+					child{ coordinate (t100) edge from parent [color=red] }
+					child{ coordinate (t101) edge from parent [color=white] }
+				}
+				child{ coordinate (t11) edge from parent [color=black] }
+			}
+			;
+
+			\node[label=$0$, circle, fill=white, draw] at (t0) {$10$} ;
+			\node[label=$-1$, circle, fill=white, draw] at (t1) {$30$} ;
+			\node[label=$-1$, circle, fill=white, draw] at (t10) {$25$} ;
+			\node[label=$0$, circle, color=red, fill=white, draw] at (t100) {$19$} ;
+			\node[label=$0$, circle, fill=white, draw] at (t11) {$32$} ;
+		\end{tikzpicture} \\ \begin{tikzpicture}
+			\node[label=$0$, circle, color=blue, fill=white, draw] {$25$}
+			child{ coordinate (t0) edge from parent [color=blue, thick]
+				child{ coordinate (t00) edge from parent [color=black] }
+				child{ edge from parent [color=white] }
+				child{ coordinate (t01) edge from parent [color=blue] }
+			}
+			child{ edge from parent [color=white] }
+			child{ edge from parent [color=white] }
+			child{ coordinate (t1) edge from parent [color=blue, thick]
+				child{ coordinate (t10) edge from parent [color=white] }
+				child{ edge from parent [color=white] }
+				child{ coordinate (t11) edge from parent [color=black] }
+			}
+			;
+
+			\node[label=$0$, circle, color=blue, fill=white, draw] at (t0) {$15$} ;
+			\node[label=$0$, circle, fill=white, draw] at (t00) {$10$} ;
+			\node[label=$0$, circle, fill=white, draw] at (t01) {$19$} ;
+			\node[label=$1$, circle, color=blue, fill=white, draw] at (t1) {$30$} ;
+			\node[label=$0$, circle, fill=white, draw] at (t11) {$32$} ;
+		\end{tikzpicture} \\ \begin{tikzpicture}
+			\node[label=$-1$, circle, fill=white, draw] {$25$}
+			child{ coordinate (t0) edge from parent [color=red, thick]
+				child{ coordinate (t00) edge from parent [color=black] }
+				child{ edge from parent [color=white] }
+				child{ coordinate (t01) edge from parent [color=red]
+					child{ coordinate (t010) edge from parent [color=red] }
+					child{ coordinate (t011) edge from parent [color=white] }
+				}
+			}
+			child{ edge from parent [color=white] }
+			child{ edge from parent [color=white] }
+			child{ coordinate (t1) edge from parent [color=black, thick]
+				child{ coordinate (t10) edge from parent [color=white] }
+				child{ edge from parent [color=white] }
+				child{ coordinate (t11) edge from parent [color=black] }
+			}
+			;
+
+			\node[label=$1$, circle, fill=white, draw] at (t0) {$15$} ;
+			\node[label=$0$, circle, fill=white, draw] at (t00) {$10$} ;
+			\node[label=$-1$, circle, fill=white, draw] at (t01) {$19$} ;
+			\node[label=$0$, circle, color=red, fill=white, draw] at (t010) {$18$} ;
+			\node[label=$1$, circle, fill=white, draw] at (t1) {$30$} ;
+			\node[label=$0$, circle, fill=white, draw] at (t11) {$32$} ;
+		\end{tikzpicture} \\ \begin{tikzpicture}
+			\node[label=$-1$, circle, fill=white, draw] {$25$}
+			child{ coordinate (t0) edge from parent [color=red, thick]
+				child{ coordinate (t00) edge from parent [color=black] }
+				child{ edge from parent [color=white] }
+				child{ coordinate (t01) edge from parent [color=red]
+					child{ coordinate (t010) edge from parent [color=red] 
+						child{ coordinate (t0100) edge from parent [color=red] }
+						child{ coordinate (t0101) edge from parent [color=white] }
+					}
+					child{ coordinate (t011) edge from parent [color=white] }
+				}
+			}
+			child{ edge from parent [color=white] }
+			child{ edge from parent [color=white] }
+			child{ coordinate (t1) edge from parent [color=black, thick]
+				child{ coordinate (t10) edge from parent [color=white] }
+				child{ edge from parent [color=white] }
+				child{ coordinate (t11) edge from parent [color=black] }
+			}
+			;
+
+			\node[label=$1$, circle, fill=white, draw] at (t0) {$15$} ;
+			\node[label=$0$, circle, fill=white, draw] at (t00) {$10$} ;
+			\node[label=$-2$, circle, fill=white, draw] at (t01) {$19$} ;
+			\node[label=$-1$, circle, fill=white, draw] at (t010) {$18$} ;
+			\node[label=$0$, circle, color=red, fill=white, draw] at (t0100) {$17$} ;
+			\node[label=$1$, circle, fill=white, draw] at (t1) {$30$} ;
+			\node[label=$0$, circle, fill=white, draw] at (t11) {$32$} ;
+		\end{tikzpicture} \\ \begin{tikzpicture}
+			\node[label=$-1$, circle, fill=white, draw] {$25$}
+			child{ coordinate (t0) edge from parent [color=red, thick]
+				child{ coordinate (t00) edge from parent [color=black] }
+				child{ edge from parent [color=white] }
+				child{ coordinate (t01) edge from parent [color=red]
+					child{ coordinate (t010) edge from parent [color=blue] }
+					child{ coordinate (t011) edge from parent [color=blue] }
+				}
+			}
+			child{ edge from parent [color=white] }
+			child{ edge from parent [color=white] }
+			child{ coordinate (t1) edge from parent [color=black, thick]
+				child{ coordinate (t10) edge from parent [color=white] }
+				child{ edge from parent [color=white] }
+				child{ coordinate (t11) edge from parent [color=black] }
+			}
+			;
+
+			\node[label=$1$, circle, fill=white, draw] at (t0) {$15$} ;
+			\node[label=$0$, circle, fill=white, draw] at (t00) {$10$} ;
+			\node[label=$0$, circle, color=blue, fill=white, draw] at (t01) {$18$} ;
+			\node[label=$0$, circle, color=blue, fill=white, draw] at (t010) {$17$} ;
+			\node[label=$0$, circle, color=blue, fill=white, draw] at (t011) {$19$} ;
+			\node[label=$1$, circle, fill=white, draw] at (t1) {$30$} ;
+			\node[label=$0$, circle, fill=white, draw] at (t11) {$32$} ;
+		\end{tikzpicture} \\ \begin{tikzpicture}
+			\node[label=$-1$, circle, fill=white, draw] {$25$}
+			child{ coordinate (t0) edge from parent [color=red, thick]
+				child{ coordinate (t00) edge from parent [color=black] }
+				child{ edge from parent [color=white] }
+				child{ coordinate (t01) edge from parent [color=red]
+					child{ coordinate (t010) edge from parent [color=black] }
+					child{ coordinate (t011) edge from parent [color=red]
+						child{ coordinate (t0110) edge from parent [color=white] }
+						child{ coordinate (t0111) edge from parent [color=red] }
+					}
+				}
+			}
+			child{ edge from parent [color=white] }
+			child{ edge from parent [color=white] }
+			child{ edge from parent [color=white] }
+			child{ coordinate (t1) edge from parent [color=black, thick]
+				child{ coordinate (t10) edge from parent [color=white] }
+				child{ edge from parent [color=white] }
+				child{ coordinate (t11) edge from parent [color=black] }
+			}
+			;
+
+			\node[label=$2$, circle, fill=white, draw] at (t0) {$15$} ;
+			\node[label=$0$, circle, fill=white, draw] at (t00) {$10$} ;
+			\node[label=$1$, circle, fill=white, draw] at (t01) {$18$} ;
+			\node[label=$0$, circle, fill=white, draw] at (t010) {$17$} ;
+			\node[label=$1$, circle, fill=white, draw] at (t011) {$19$} ;
+			\node[label=$0$, circle, color=red, fill=white, draw] at (t0111) {$20$} ;
+			\node[label=$1$, circle, fill=white, draw] at (t1) {$30$} ;
+			\node[label=$0$, circle, fill=white, draw] at (t11) {$32$} ;
+		\end{tikzpicture} \\ \begin{tikzpicture}
+			\node[label=$-1$, circle, fill=white, draw] {$25$}
+			child{ coordinate (t0) edge from parent [color=red, thick]
+				child{ coordinate (t00) edge from parent [color=blue]
+					child{ coordinate (t000) edge from parent [color=black] }
+					child{ coordinate (t001) edge from parent [color=blue] }
+				}
+				child{ edge from parent [color=white] }
+				child{ coordinate (t01) edge from parent [color=blue]
+					child{ coordinate (t010) edge from parent [color=white] }
+					child{ coordinate (t011) edge from parent [color=black] }
+				}
+			}
+			child{ edge from parent [color=white] }
+			child{ edge from parent [color=white] }
+			child{ edge from parent [color=white] }
+			child{ coordinate (t1) edge from parent [color=black, thick]
+				child{ coordinate (t10) edge from parent [color=white] }
+				child{ edge from parent [color=white] }
+				child{ coordinate (t11) edge from parent [color=black] }
+			}
+			;
+
+			\node[label=$0$, circle, color=blue, fill=white, draw] at (t0) {$18$} ;
+			\node[label=$0$, circle, color=blue, fill=white, draw] at (t00) {$15$} ;
+			\node[label=$0$, circle, fill=white, draw] at (t000) {$10$} ;
+			\node[label=$0$, circle, fill=white, draw] at (t001) {$17$} ;
+			\node[label=$1$, circle, color=blue, fill=white, draw] at (t01) {$19$} ;
+			\node[label=$0$, circle, fill=white, draw] at (t011) {$20$} ;
+			\node[label=$1$, circle, fill=white, draw] at (t1) {$30$} ;
+			\node[label=$0$, circle, fill=white, draw] at (t11) {$32$} ;
+		\end{tikzpicture} 
+	\end{alfa}
+\end{ex}
+\newpage
+
+%Q4
+\begin{ex}
+	\quad\\
+	Legenda de cores:
+	\begin{itemize}
+		\item[$-$] Aresta Preta: Sem diferenças da versão passada.
+		\item[$-$] Aresta Vermelha: Caminho para no inserido.
+		\item[$-$] Azul: Arestas criadas e Nos alterados pela rotação.
+	\end{itemize}
+	\begin{alfa}
+	%4-1
+	\item Inserindo $32$, $10$, $15$, (rot), $25$, $30$, (rot):\\
+		\begin{tikzpicture}
+			\node[circle, color=white, fill=black] {$32$} ;
+		\end{tikzpicture} \quad \quad \quad \begin{tikzpicture}
+			\node[circle, color=white, fill=black] {$32$}
+			child{ coordinate (t0) edge from parent [color=red, thick] }
+			child{ coordinate (t1) edge from parent [color=white, thick] }
+			;
+
+			\node[circle, color=white, fill=red] at (t0) {$10$} ;
+		\end{tikzpicture} \quad \quad \quad \begin{tikzpicture}
+			\node[circle, color=white, fill=black] {$32$}
+			child{ coordinate (t0) edge from parent [color=red, thick]
+				child{ coordinate (t00) edge from parent [color=white] }
+				child{ coordinate (t01) edge from parent [color=red] }
+			}
+			child{ coordinate (t1) edge from parent [color=white, thick] }
+			;
+
+			\node[circle, color=white, fill=red] at (t0) {$10$} ;
+			\node[circle, color=white, fill=red] at (t01) {$15$} ;
+		\end{tikzpicture} \quad \quad \quad \begin{tikzpicture}
+			\node[circle, color=cyan, fill=black] {$15$}
+			child{ coordinate (t0) edge from parent [color=blue, thick] }
+			child{ coordinate (t1) edge from parent [color=blue, thick] }
+			;
+
+			\node[circle, color=cyan, fill=red] at (t0) {$10$} ;
+			\node[circle, color=cyan, fill=red] at (t1) {$32$} ;
+		\end{tikzpicture} \\ \begin{tikzpicture}
+			\node[circle, color=white, fill=black] {$15$}
+			child{ coordinate (t0) edge from parent [color=black, thick] }
+			child{ edge from parent [color=white] }
+			child{ coordinate (t1) edge from parent [color=red, thick]
+				child{ coordinate (t10) edge from parent [color=red] }
+				child{ coordinate (t11) edge from parent [color=white] }
+			}
+			;
+
+			\node[circle, color=white, fill=black] at (t0) {$10$} ;
+			\node[circle, color=white, fill=black] at (t1) {$32$} ;
+			\node[circle, color=white, fill=red] at (t10) {$25$} ;
+		\end{tikzpicture} \quad \quad \quad \begin{tikzpicture}
+			\node[circle, color=white, fill=black] {$15$}
+			child{ coordinate (t0) edge from parent [color=black, thick] }
+			child{ edge from parent [color=white] }
+			child{ edge from parent [color=white] }
+			child{ coordinate (t1) edge from parent [color=red, thick]
+				child{ coordinate (t10) edge from parent [color=red]
+					child{ coordinate (t100) edge from parent [color=white] }
+					child{ coordinate (t101) edge from parent [color=red] }
+				}
+				child{ edge from parent [color=white] }
+				child{ coordinate (t11) edge from parent [color=white] }
+			}
+			;
+
+			\node[circle, color=white, fill=black] at (t0) {$10$} ;
+			\node[circle, color=white, fill=black] at (t1) {$32$} ;
+			\node[circle, color=white, fill=red] at (t10) {$25$} ;
+			\node[circle, color=white, fill=red] at (t101) {$30$} ;
+		\end{tikzpicture} \\ \begin{tikzpicture}
+			\node[circle, color=white, fill=black] {$15$}
+			child{ coordinate (t0) edge from parent [color=black, thick] }
+			child{ edge from parent [color=white] }
+			child{ coordinate (t1) edge from parent [color=red, thick]
+				child{ coordinate (t10) edge from parent [color=blue] }
+				child{ coordinate (t11) edge from parent [color=blue] }
+			}
+			;
+
+			\node[circle, color=white, fill=black] at (t0) {$10$} ;
+			\node[circle, color=cyan, fill=black] at (t1) {$30$} ;
+			\node[circle, color=cyan, fill=red] at (t10) {$25$} ;
+			\node[circle, color=cyan, fill=red] at (t11) {$32$} ;
+		\end{tikzpicture} 
+	%4-2
+	\newpage
+	\item Inserindo $19$, $18$, (rot), $17$, (rot), $20$:\\
+		\begin{tikzpicture}
+			\node[circle, color=white, fill=black] {$15$}
+			child{ coordinate (t0) edge from parent [color=black, thick] }
+			child{ edge from parent [color=white] }
+			child{ edge from parent [color=white] }
+			child{ coordinate (t1) edge from parent [color=red, thick]
+				child{ coordinate (t10) edge from parent [color=red]
+					child{ coordinate (t100) edge from parent [color=red] }
+					child{ coordinate (t101) edge from parent [color=white] }
+				}
+				child{ coordinate (t11) edge from parent [color=black] }
+			}
+			;
+
+			\node[circle, color=white, fill=black] at (t0) {$10$} ;
+			\node[circle, color=white, fill=red] at (t1) {$30$} ;
+			\node[circle, color=white, fill=black] at (t10) {$25$} ;
+			\node[circle, color=white, fill=red] at (t100) {$19$} ;
+			\node[circle, color=white, fill=black] at (t11) {$32$} ;
+		\end{tikzpicture} \\ \quad \\ \begin{tikzpicture}
+			\node[circle, color=white, fill=black] {$15$}
+			child{ coordinate (t0) edge from parent [color=black, thick] }
+			child{ edge from parent [color=white] }
+			child{ edge from parent [color=white] }
+			child{ edge from parent [color=white] }
+			child{ coordinate (t1) edge from parent [color=red, thick]
+				child{ coordinate (t10) edge from parent [color=red]
+					child{ coordinate (t100) edge from parent [color=red]
+						child{ coordinate (t1000) edge from parent [color=red] }
+						child{ coordinate (t1001) edge from parent [color=white] }
+					}
+					child{ coordinate (t101) edge from parent [color=white] }
+				}
+				child{ coordinate (t11) edge from parent [color=black] }
+			}
+			;
+
+			\node[circle, color=white, fill=black] at (t0) {$10$} ;
+			\node[circle, color=white, fill=red] at (t1) {$30$} ;
+			\node[circle, color=white, fill=black] at (t10) {$25$} ;
+			\node[circle, color=white, fill=red] at (t100) {$19$} ;
+			\node[circle, color=white, fill=red] at (t1000) {$18$} ;
+			\node[circle, color=white, fill=black] at (t11) {$32$} ;
+		\end{tikzpicture} \\ \quad \\ \begin{tikzpicture}
+			\node[circle, color=white, fill=black] {$15$}
+			child{ coordinate (t0) edge from parent [color=black, thick] }
+			child{ edge from parent [color=white] }
+			child{ edge from parent [color=white] }
+			child{ coordinate (t1) edge from parent [color=red, thick]
+				child{ coordinate (t10) edge from parent [color=red]
+					child{ coordinate (t100) edge from parent [color=blue] }
+					child{ coordinate (t101) edge from parent [color=blue] }
+				}
+				child{ coordinate (t11) edge from parent [color=black] }
+			}
+			;
+
+			\node[circle, color=white, fill=black] at (t0) {$10$} ;
+			\node[circle, color=white, fill=red] at (t1) {$30$} ;
+			\node[circle, color=cyan, fill=black] at (t10) {$19$} ;
+			\node[circle, color=cyan, fill=red] at (t100) {$18$} ;
+			\node[circle, color=cyan, fill=red] at (t101) {$25$} ;
+			\node[circle, color=white, fill=black] at (t11) {$32$} ;
+		\end{tikzpicture} \\ \quad \\ \begin{tikzpicture}
+			\node[circle, color=white, fill=black] {$15$}
+			child{ coordinate (t0) edge from parent [color=black, thick] }
+			child{ edge from parent [color=white] }
+			child{ edge from parent [color=white] }
+			child{ edge from parent [color=white] }
+			child{ coordinate (t1) edge from parent [color=red, thick]
+				child{ coordinate (t10) edge from parent [color=red]
+					child{ coordinate (t100) edge from parent [color=red]
+						child{ coordinate (t1000) edge from parent [color=red] }
+						child{ coordinate (t1001) edge from parent [color=white] }
+					}
+					child{ coordinate (t101) edge from parent [color=black] }
+				}
+				child{ coordinate (t11) edge from parent [color=black] }
+			}
+			;
+
+			\node[circle, color=white, fill=black] at (t0) {$10$} ;
+			\node[circle, color=white, fill=red] at (t1) {$30$} ;
+			\node[circle, color=white, fill=red] at (t10) {$19$} ;
+			\node[circle, color=white, fill=black] at (t100) {$18$} ;
+			\node[circle, color=white, fill=red] at (t1000) {$17$} ;
+			\node[circle, color=white, fill=black] at (t101) {$25$} ;
+			\node[circle, color=white, fill=black] at (t11) {$32$} ;
+		\end{tikzpicture} \\ \quad \\ \begin{tikzpicture}
+			\node[circle, color=cyan, fill=black] {$19$}
+			child{ coordinate (t0) edge from parent [color=blue, thick]
+				child{ coordinate (t00) edge from parent [color=black] }
+				child{ edge from parent [color=white] }
+				child{ coordinate (t01) edge from parent [color=blue]
+					child{ coordinate (t010) edge from parent [color=black] }
+					child{ coordinate (t011) edge from parent [color=white] }
+				}
+			}
+			child{ edge from parent [color=white] }
+			child{ edge from parent [color=white] }
+			child{ coordinate (t1) edge from parent [color=blue, thick]
+				child{ coordinate (t10) edge from parent [color=blue] }
+				child{ coordinate (t11) edge from parent [color=black] }
+			}
+			;
+
+			\node[circle, color=cyan, fill=red] at (t0) {$15$} ;
+			\node[circle, color=white, fill=black] at (t00) {$10$} ;
+			\node[circle, color=white, fill=black] at (t01) {$18$} ;
+			\node[circle, color=white, fill=red] at (t010) {$17$} ;
+			\node[circle, color=cyan, fill=red] at (t1) {$30$} ;
+			\node[circle, color=white, fill=black] at (t10) {$25$} ;
+			\node[circle, color=white, fill=black] at (t11) {$32$} ;
+		\end{tikzpicture} \\ \quad \\ \begin{tikzpicture}
+			\node[circle, color=white, fill=black] {$19$}
+			child{ coordinate (t0) edge from parent [color=black, thick]
+				child{ coordinate (t00) edge from parent [color=black] }
+				child{ edge from parent [color=white] }
+				child{ coordinate (t01) edge from parent [color=black]
+					child{ coordinate (t010) edge from parent [color=black] }
+					child{ coordinate (t011) edge from parent [color=white] }
+				}
+			}
+			child{ edge from parent [color=white] }
+			child{ edge from parent [color=white] }
+			child{ coordinate (t1) edge from parent [color=red, thick]
+				child{ coordinate (t10) edge from parent [color=red]
+					child{ coordinate (t100) edge from parent [color=red] }
+					child{ coordinate (t101) edge from parent [color=white] }
+				}
+				child{ coordinate (t11) edge from parent [color=black] }
+			}
+			;
+
+			\node[circle, color=white, fill=red] at (t0) {$15$} ;
+			\node[circle, color=white, fill=black] at (t00) {$10$} ;
+			\node[circle, color=white, fill=black] at (t01) {$18$} ;
+			\node[circle, color=white, fill=red] at (t010) {$17$} ;
+			\node[circle, color=white, fill=red] at (t1) {$30$} ;
+			\node[circle, color=white, fill=black] at (t10) {$25$} ;
+			\node[circle, color=white, fill=red] at (t100) {$20$} ;
+			\node[circle, color=white, fill=black] at (t11) {$32$} ;
+		\end{tikzpicture} 
+	\end{alfa}
+\end{ex}
+\newpage
+
+%Q5
+\begin{ex}
+	\quad\\
+	Legenda de cores:
+	\begin{itemize}
+		\item[$-$] Aresta Preta: Sem diferenças da versão passada.
+		\item[$-$] Aresta Vermelha: Caminho para no inserido.
+		\item[$-$] Azul: Mudanças por subida ou descida.
+	\end{itemize}
+	\begin{alfa}
+	%5-1
+	\item Árvore da heap:
+		\quad\\
+		\begin{tikzpicture}
+			\node[circle, color=black, draw] {$05$}
+			child{ coordinate (t0) edge from parent [color=black, thick]
+				child{ coordinate (t00) edge from parent [color=black] }
+				child{ coordinate (t01) edge from parent [color=black] }
+			}
+			child{ edge from parent [color=white] }
+			child{ coordinate (t1) edge from parent [color=black, thick]
+				child{ coordinate (t10) edge from parent [color=black] }
+				child{ coordinate (t11) edge from parent [color=white] }
+			}
+			;
+
+			\node[circle, color=black, fill=white, draw] at (t0) {$08$} ;
+			\node[circle, color=black, fill=white, draw] at (t00) {$19$} ;
+			\node[circle, color=black, fill=white, draw] at (t01) {$10$} ;
+			\node[circle, color=black, fill=white, draw] at (t1) {$15$} ;
+			\node[circle, color=black, fill=white, draw] at (t10) {$23$} ;
+		\end{tikzpicture}
+	%5-2
+	\item Inserindo $20$, $7$, $11$, $18$:\\
+		\begin{tikzpicture}
+			\node[circle, color=black, draw] {$05$}
+			child{ coordinate (t0) edge from parent [color=black, thick]
+				child{ coordinate (t00) edge from parent [color=black] }
+				child{ coordinate (t01) edge from parent [color=black] }
+			}
+			child{ edge from parent [color=white] }
+			child{ coordinate (t1) edge from parent [color=red, thick]
+				child{ coordinate (t10) edge from parent [color=black] }
+				child{ coordinate (t11) edge from parent [color=red] }
+			}
+			;
+
+			\node[circle, color=black, fill=white, draw] at (t0) {$08$} ;
+			\node[circle, color=black, fill=white, draw] at (t00) {$19$} ;
+			\node[circle, color=black, fill=white, draw] at (t01) {$10$} ;
+			\node[circle, color=black, fill=white, draw] at (t1) {$15$} ;
+			\node[circle, color=black, fill=white, draw] at (t10) {$23$} ;
+			\node[circle, color=red, fill=white, draw] at (t11) {$20$} ;
+		\end{tikzpicture} \quad \quad \quad \begin{tikzpicture}
+			\node[circle, color=black, draw] {$05$}
+			child{ coordinate (t0) edge from parent [color=red, thick]
+				child{ coordinate (t00) edge from parent [color=red]
+					child{ coordinate (t000) edge from parent [color=red] }
+					child{ coordinate (t001) edge from parent [color=white] }
+				}
+				child{ coordinate (t01) edge from parent [color=black] }
+			}
+			child{ edge from parent [color=white] }
+			child{ coordinate (t1) edge from parent [color=black, thick]
+				child{ coordinate (t10) edge from parent [color=black] }
+				child{ coordinate (t11) edge from parent [color=black] }
+			}
+			;
+
+			\node[circle, color=black, fill=white, draw] at (t0) {$08$} ;
+			\node[circle, color=black, fill=white, draw] at (t00) {$19$} ;
+			\node[circle, color=red, fill=white, draw] at (t000) {$07$} ;
+			\node[circle, color=black, fill=white, draw] at (t01) {$10$} ;
+			\node[circle, color=black, fill=white, draw] at (t1) {$15$} ;
+			\node[circle, color=black, fill=white, draw] at (t10) {$23$} ;
+			\node[circle, color=black, fill=white, draw] at (t11) {$20$} ;
+		\end{tikzpicture} \\ \quad \\ \begin{tikzpicture}
+			\node[circle, color=black, draw] {$05$}
+			child{ coordinate (t0) edge from parent [color=black, thick]
+				child{ coordinate (t00) edge from parent [color=blue]
+					child{ coordinate (t000) edge from parent [color=blue] }
+					child{ coordinate (t001) edge from parent [color=white] }
+				}
+				child{ coordinate (t01) edge from parent [color=black] }
+			}
+			child{ edge from parent [color=white] }
+			child{ coordinate (t1) edge from parent [color=black, thick]
+				child{ coordinate (t10) edge from parent [color=black] }
+				child{ coordinate (t11) edge from parent [color=black] }
+			}
+			;
+
+			\node[circle, color=blue, fill=white, draw] at (t0) {$07$} ;
+			\node[circle, color=blue, fill=white, draw] at (t00) {$08$} ;
+			\node[circle, color=blue, fill=white, draw] at (t000) {$19$} ;
+			\node[circle, color=black, fill=white, draw] at (t01) {$10$} ;
+			\node[circle, color=black, fill=white, draw] at (t1) {$15$} ;
+			\node[circle, color=black, fill=white, draw] at (t10) {$23$} ;
+			\node[circle, color=black, fill=white, draw] at (t11) {$20$} ;
+		\end{tikzpicture} \\ \quad \\ \begin{tikzpicture}
+			\node[circle, color=black, draw] {$05$}
+			child{ coordinate (t0) edge from parent [color=red, thick]
+				child{ coordinate (t00) edge from parent [color=red]
+					child{ coordinate (t000) edge from parent [color=black] }
+					child{ coordinate (t001) edge from parent [color=red] }
+				}
+				child{ coordinate (t01) edge from parent [color=black] }
+			}
+			child{ edge from parent [color=white] }
+			child{ coordinate (t1) edge from parent [color=black, thick]
+				child{ coordinate (t10) edge from parent [color=black] }
+				child{ coordinate (t11) edge from parent [color=black] }
+			}
+			;
+
+			\node[circle, color=black, fill=white, draw] at (t0) {$07$} ;
+			\node[circle, color=black, fill=white, draw] at (t00) {$08$} ;
+			\node[circle, color=black, fill=white, draw] at (t000) {$19$} ;
+			\node[circle, color=red, fill=white, draw] at (t001) {$11$} ;
+			\node[circle, color=black, fill=white, draw] at (t01) {$10$} ;
+			\node[circle, color=black, fill=white, draw] at (t1) {$15$} ;
+			\node[circle, color=black, fill=white, draw] at (t10) {$23$} ;
+			\node[circle, color=black, fill=white, draw] at (t11) {$20$} ;
+		\end{tikzpicture} \\ \quad \\ \begin{tikzpicture}
+			\node[circle, color=black, draw] {$05$}
+			child{ coordinate (t0) edge from parent [color=red, thick]
+				child{ coordinate (t00) edge from parent [color=black]
+					child{ coordinate (t000) edge from parent [color=black] }
+					child{ coordinate (t001) edge from parent [color=black] }
+				}
+				child{ edge from parent [color=white] }
+				child{ coordinate (t01) edge from parent [color=red]
+					child{ coordinate (t010) edge from parent [color=red] }
+					child{ coordinate (t011) edge from parent [color=white] }
+				}
+			}
+			child{ edge from parent [color=white] }
+			child{ edge from parent [color=white] }
+			child{ coordinate (t1) edge from parent [color=black, thick]
+				child{ coordinate (t10) edge from parent [color=black] }
+				child{ edge from parent [color=white] }
+				child{ coordinate (t11) edge from parent [color=black] }
+			}
+			;
+
+			\node[circle, color=black, fill=white, draw] at (t0) {$07$} ;
+			\node[circle, color=black, fill=white, draw] at (t00) {$08$} ;
+			\node[circle, color=black, fill=white, draw] at (t000) {$19$} ;
+			\node[circle, color=black, fill=white, draw] at (t001) {$11$} ;
+			\node[circle, color=black, fill=white, draw] at (t01) {$10$} ;
+			\node[circle, color=red, fill=white, draw] at (t010) {$18$} ;
+			\node[circle, color=black, fill=white, draw] at (t1) {$15$} ;
+			\node[circle, color=black, fill=white, draw] at (t10) {$23$} ;
+			\node[circle, color=black, fill=white, draw] at (t11) {$20$} ;
+		\end{tikzpicture} \\ \quad \\ \begin{tikzpicture}
+			\node[color=black, draw] (t0) {$05$} ;
+			\node[color=black, draw, right=0cm of t0] (t1) {$07$} ;
+			\node[color=black, draw, right=0cm of t1] (t2) {$15$} ;
+			\node[color=black, draw, right=0cm of t2] (t3) {$08$} ;
+			\node[color=black, draw, right=0cm of t3] (t4) {$10$} ;
+			\node[color=black, draw, right=0cm of t4] (t5) {$23$} ;
+			\node[color=black, draw, right=0cm of t5] (t6) {$20$} ;
+			\node[color=black, draw, right=0cm of t6] (t7) {$19$} ;
+			\node[color=black, draw, right=0cm of t7] (t8) {$11$} ;
+			\node[color=black, draw, right=0cm of t8] (t9) {$18$} ;
+		\end{tikzpicture}
+	%5-3
+	\newpage
+	\item Remoção da heap:
+		\quad\\
+		\begin{tikzpicture}
+			\node[circle, color=black, draw] {$05$}
+			child{ coordinate (t0) edge from parent [color=black, thick]
+				child{ coordinate (t00) edge from parent [color=black] }
+				child{ coordinate (t01) edge from parent [color=black] }
+			}
+			child{ edge from parent [color=white] }
+			child{ coordinate (t1) edge from parent [color=black, thick]
+				child{ coordinate (t10) edge from parent [color=black] }
+				child{ coordinate (t11) edge from parent [color=white] }
+			}
+			;
+
+			\node[circle, color=black, fill=white, draw] at (t0) {$08$} ;
+			\node[circle, color=black, fill=white, draw] at (t00) {$19$} ;
+			\node[circle, color=black, fill=white, draw] at (t01) {$10$} ;
+			\node[circle, color=black, fill=white, draw] at (t1) {$15$} ;
+			\node[circle, color=black, fill=white, draw] at (t10) {$23$} ;
+		\end{tikzpicture} \\ \quad \\ \begin{tikzpicture}
+			\node[circle, color=blue, draw] {$23$}
+			child{ coordinate (t0) edge from parent [color=black, thick]
+				child{ coordinate (t00) edge from parent [color=black] }
+				child{ coordinate (t01) edge from parent [color=black] }
+			}
+			child{ edge from parent [color=white] }
+			child{ coordinate (t1) edge from parent [color=black, thick]
+				child{ coordinate (t10) edge from parent [color=red] }
+				child{ coordinate (t11) edge from parent [color=white] }
+			}
+			;
+
+			\node[circle, color=black, fill=white, draw] at (t0) {$08$} ;
+			\node[circle, color=black, fill=white, draw] at (t00) {$19$} ;
+			\node[circle, color=black, fill=white, draw] at (t01) {$10$} ;
+			\node[circle, color=black, fill=white, draw] at (t1) {$15$} ;
+			\node[circle, color=red, fill=white, draw] at (t10) {$05$} ;
+		\end{tikzpicture} \\ \quad \\ \begin{tikzpicture}
+			\node[circle, color=blue, draw] {$08$}
+			child{ coordinate (t0) edge from parent [color=blue, thick]
+				child{ coordinate (t00) edge from parent [color=black] }
+				child{ coordinate (t01) edge from parent [color=blue] }
+			}
+			child{ edge from parent [color=white] }
+			child{ coordinate (t1) edge from parent [color=black, thick]
+				child{ coordinate (t10) edge from parent [color=red] }
+				child{ coordinate (t11) edge from parent [color=white] }
+			}
+			;
+
+			\node[circle, color=blue, fill=white, draw] at (t0) {$10$} ;
+			\node[circle, color=black, fill=white, draw] at (t00) {$19$} ;
+			\node[circle, color=blue, fill=white, draw] at (t01) {$23$} ;
+			\node[circle, color=black, fill=white, draw] at (t1) {$15$} ;
+			\node[circle, color=red, fill=white, draw] at (t10) {$05$} ;
+		\end{tikzpicture} \\ \quad \\ \begin{tikzpicture}
+			\node[circle, color=black, draw] {$08$}
+			child{ coordinate (t0) edge from parent [color=black, thick]
+				child{ coordinate (t00) edge from parent [color=black] }
+				child{ coordinate (t01) edge from parent [color=black] }
+			}
+			child{ edge from parent [color=white] }
+			child{ coordinate (t1) edge from parent [color=black, thick] }
+			;
+
+			\node[circle, color=black, fill=white, draw] at (t0) {$10$} ;
+			\node[circle, color=black, fill=white, draw] at (t00) {$19$} ;
+			\node[circle, color=black, fill=white, draw] at (t01) {$23$} ;
+			\node[circle, color=black, fill=white, draw] at (t1) {$15$} ;
+		\end{tikzpicture} \\ \quad \\ \begin{tikzpicture}
+			\node[color=black, draw] (t0) {$08$} ;
+			\node[color=black, draw, right=0cm of t0] (t1) {$10$} ;
+			\node[color=black, draw, right=0cm of t1] (t2) {$15$} ;
+			\node[color=black, draw, right=0cm of t2] (t3) {$19$} ;
+			\node[color=black, draw, right=0cm of t3] (t4) {$23$} ;
+		\end{tikzpicture}
+	\end{alfa}
+\end{ex}
+\newpage
+
+\end{document}
